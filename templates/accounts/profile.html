@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile - Django Project{% endblock %}
+
+{% block content %}
+<h2>User Profile</h2>
+
+<div style="background: #f9f9f9; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
+    <h3>Account Information</h3>
+    <p><strong>Username:</strong> {{ user.username }}</p>
+    <p><strong>Email:</strong> {{ user.email|default:"Not provided" }}</p>
+    <p><strong>First Name:</strong> {{ user.first_name|default:"Not provided" }}</p>
+    <p><strong>Last Name:</strong> {{ user.last_name|default:"Not provided" }}</p>
+    <p><strong>Date Joined:</strong> {{ user.date_joined|date:"F d, Y" }}</p>
+    <p><strong>Last Login:</strong> {{ user.last_login|date:"F d, Y g:i A"|default:"Never" }}</p>
+</div>
+
+<div>
+    <h3>Account Actions</h3>
+    <p><a href="{% url 'admin:index' %}" class="btn" style="display: inline-block; text-decoration: none;">Admin Panel</a> (if you're a staff member)</p>
+    <p><a href="{% url 'accounts:logout' %}" class="btn" style="display: inline-block; text-decoration: none; background: #dc3545;">Logout</a></p>
+</div>
+{% endblock %}
