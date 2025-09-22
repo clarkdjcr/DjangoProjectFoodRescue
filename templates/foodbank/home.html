@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+
+{% block title %}Food Rescue Hub - Home{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Hero Section -->
+        <div class="card bg-gradient-primary text-white mb-4">
+            <div class="card-body p-5 text-center">
+                <h1 class="display-4 fw-bold mb-3">
+                    <i class="fas fa-heart me-3"></i>
+                    Food Rescue Hub
+                </h1>
+                <p class="lead mb-4">
+                    Connecting grocery stores with food banks to reduce waste and feed communities
+                </p>
+                <div class="row g-3 justify-content-center">
+                    <div class="col-md-4">
+                        <div class="bg-white bg-opacity-20 rounded p-3">
+                            <h3 class="fw-bold">{{ total_food_banks }}</h3>
+                            <small>Food Banks Connected</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="bg-white bg-opacity-20 rounded p-3">
+                            <h3 class="fw-bold">{{ total_grocery_stores }}</h3>
+                            <small>Grocery Store Partners</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="bg-white bg-opacity-20 rounded p-3">
+                            <h3 class="fw-bold">{{ recent_donations }}</h3>
+                            <small>Donations This Week</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Quick Actions -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-rocket me-2"></i>
+                    Quick Start Guide
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    {% if user.is_authenticated %}
+                        <div class="col-md-6">
+                            <div class="card border-success">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-map-marked-alt fa-3x text-success mb-3"></i>
+                                    <h6>1. Setup Region</h6>
+                                    <p class="text-muted small">Configure your service area and truck capacity</p>
+                                    <a href="{% url 'foodbank:region_setup' %}" class="btn btn-success">
+                                        <i class="fas fa-plus me-1"></i>Create Region
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-info">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-users fa-3x text-info mb-3"></i>
+                                    <h6>2. Register Partners</h6>
+                                    <p class="text-muted small">Add food banks and grocery stores to your network</p>
+                                    <a href="/admin/" class="btn btn-info">
+                                        <i class="fas fa-cog me-1"></i>Admin Panel
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="col-md-6">
+                            <div class="card border-primary">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-store fa-3x text-primary mb-3"></i>
+                                    <h6>Grocery Store Partner?</h6>
+                                    <p class="text-muted small">Have food to donate? Get started here</p>
+                                    <p class="small">Contact your regional coordinator for access</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-warning">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-hands-helping fa-3x text-warning mb-3"></i>
+                                    <h6>Food Bank Partner?</h6>
+                                    <p class="text-muted small">Want to receive food donations?</p>
+                                    <p class="small">Contact your regional coordinator for registration</p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Regions -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-globe-americas me-2"></i>
+                    Active Regions
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if regions %}
+                    {% for region in regions %}
+                        <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                            <div>
+                                <h6 class="mb-1">{{ region.name }}</h6>
+                                <small class="text-muted">{{ region.radius_miles }} mile radius</small>
+                            </div>
+                            <a href="{% url 'foodbank:region_dashboard' region.id %}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-map fa-2x mb-2"></i>
+                        <p class="mb-0">No regions configured yet</p>
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'foodbank:region_setup' %}" class="btn btn-sm btn-primary mt-2">
+                                Create First Region
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works Section -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-question-circle me-2"></i>
+                    How Food Rescue Hub Works
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-4 text-center">
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                <i class="fas fa-envelope fa-lg"></i>
+                            </div>
+                        </div>
+                        <h6>1. Email Notification</h6>
+                        <p class="text-muted small">Grocery stores email available food items with quantities and expiration dates</p>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                <i class="fas fa-robot fa-lg"></i>
+                            </div>
+                        </div>
+                        <h6>2. AI Processing</h6>
+                        <p class="text-muted small">AI extracts food details and creates optimal pickup and delivery schedules</p>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <div class="bg-warning text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                <i class="fas fa-route fa-lg"></i>
+                            </div>
+                        </div>
+                        <h6>3. Route Optimization</h6>
+                        <p class="text-muted small">System generates efficient routes for volunteer truck teams within 4-hour windows</p>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <div class="bg-info text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                <i class="fas fa-check-circle fa-lg"></i>
+                            </div>
+                        </div>
+                        <h6>4. Confirmation</h6>
+                        <p class="text-muted small">Automated emails confirm pickup times with stores and delivery times with food banks</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Grid -->
+<div class="row mt-4 g-4">
+    <div class="col-md-4">
+        <div class="card h-100 text-center">
+            <div class="card-body">
+                <i class="fas fa-mobile-alt fa-3x text-primary mb-3"></i>
+                <h6>Mobile-First Design</h6>
+                <p class="text-muted small">Optimized forms work perfectly on any device that connects to the internet</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 text-center">
+            <div class="card-body">
+                <i class="fas fa-brain fa-3x text-success mb-3"></i>
+                <h6>AI-Powered</h6>
+                <p class="text-muted small">OpenAI integration processes food donation emails and optimizes distribution</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 text-center">
+            <div class="card-body">
+                <i class="fas fa-balance-scale fa-3x text-warning mb-3"></i>
+                <h6>Smart Distribution</h6>
+                <p class="text-muted small">Allocates food based on food bank capacity and daily needs automatically</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

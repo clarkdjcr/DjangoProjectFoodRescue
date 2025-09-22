@@ -1,0 +1,318 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ region.name }} Dashboard{% endblock %}
+
+{% block content %}
+<!-- Region Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h2 class="mb-1">
+                            <i class="fas fa-map-marked-alt me-2"></i>
+                            {{ region.name }}
+                        </h2>
+                        <p class="mb-0 opacity-75">
+                            Service radius: {{ region.radius_miles }} miles •
+                            Truck capacity: {{ region.truck_capacity_pounds }} lbs
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        {% if user.is_authenticated %}
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'foodbank:route_planning' region.id %}" class="btn btn-light btn-sm">
+                                    <i class="fas fa-route me-1"></i>Routes
+                                </a>
+                                <a href="{% url 'foodbank:email_processing' region.id %}" class="btn btn-light btn-sm">
+                                    <i class="fas fa-envelope me-1"></i>Email
+                                </a>
+                                <a href="{% url 'foodbank:analytics_dashboard' region.id %}" class="btn btn-light btn-sm">
+                                    <i class="fas fa-chart-bar me-1"></i>Analytics
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Statistics -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="fas fa-hands-helping fa-2x text-primary mb-2"></i>
+                <h4 class="fw-bold">{{ food_banks.count }}</h4>
+                <small class="text-muted">Food Banks</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="fas fa-store fa-2x text-success mb-2"></i>
+                <h4 class="fw-bold">{{ grocery_stores.count }}</h4>
+                <small class="text-muted">Grocery Stores</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="fas fa-weight fa-2x text-warning mb-2"></i>
+                <h4 class="fw-bold">{{ total_capacity|floatformat:0 }}</h4>
+                <small class="text-muted">Total Capacity (lbs)</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="fas fa-calendar-day fa-2x text-info mb-2"></i>
+                <h4 class="fw-bold">{{ total_daily_need|floatformat:0 }}</h4>
+                <small class="text-muted">Daily Need (lbs)</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Recent Donations -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i class="fas fa-history me-2"></i>
+                    Recent Donations
+                </h6>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'foodbank:email_processing' region.id %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus me-1"></i>Process Email
+                    </a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if recent_donations %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Store</th>
+                                    <th>Category</th>
+                                    <th>Weight</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for donation in recent_donations %}
+                                    <tr>
+                                        <td>{{ donation.grocery_store.name }}</td>
+                                        <td>
+                                            <span class="badge bg-light text-dark">
+                                                {{ donation.category.name }}
+                                            </span>
+                                        </td>
+                                        <td>{{ donation.quantity_pounds }} lbs</td>
+                                        <td>
+                                            <span class="status-badge status-{{ donation.status }}">
+                                                {{ donation.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>{{ donation.created_at|date:"M d" }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-inbox fa-3x mb-3"></i>
+                        <p>No recent donations</p>
+                        <small>Donations will appear here as they're submitted</small>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Routes -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i class="fas fa-truck me-2"></i>
+                    Active Routes
+                </h6>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'foodbank:route_planning' region.id %}" class="btn btn-sm btn-success">
+                        <i class="fas fa-route me-1"></i>Plan
+                    </a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if active_routes %}
+                    {% for route in active_routes %}
+                        <div class="border-bottom pb-2 mb-2">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">{{ route.scheduled_date|date:"M d" }}</h6>
+                                    <small class="text-muted">{{ route.driver_team }}</small>
+                                </div>
+                                <span class="status-badge status-{{ route.status }}">
+                                    {{ route.get_status_display }}
+                                </span>
+                            </div>
+                            <small class="text-muted">
+                                {{ route.stops.count }} stops • {{ route.estimated_duration_minutes }}min
+                            </small>
+                            {% if user.is_authenticated %}
+                                <div class="mt-1">
+                                    <a href="{% url 'foodbank:route_detail' route.id %}" class="btn btn-xs btn-outline-primary">
+                                        View Details
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-route fa-2x mb-2"></i>
+                        <p class="mb-0">No active routes</p>
+                        <small>Create routes from confirmed donations</small>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-plus-circle me-2"></i>
+                    Quick Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'foodbank:food_bank_registration' region.id %}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-hands-helping me-1"></i>
+                        Register Food Bank
+                    </a>
+                    <a href="{% url 'foodbank:grocery_store_registration' region.id %}" class="btn btn-outline-success btn-sm">
+                        <i class="fas fa-store me-1"></i>
+                        Register Grocery Store
+                    </a>
+                    {% if grocery_stores %}
+                        <div class="dropdown">
+                            <button class="btn btn-outline-warning btn-sm dropdown-toggle w-100" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-plus me-1"></i>
+                                Submit Donation
+                            </button>
+                            <ul class="dropdown-menu w-100">
+                                {% for store in grocery_stores %}
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'foodbank:food_donation_form' store.id %}">
+                                            {{ store.name }}
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Food Banks and Stores -->
+<div class="row g-4 mt-2">
+    <!-- Food Banks -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-hands-helping me-2"></i>
+                    Food Banks ({{ food_banks.count }})
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if food_banks %}
+                    {% for food_bank in food_banks %}
+                        <div class="border-bottom pb-2 mb-2">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ food_bank.name }}</h6>
+                                    <small class="text-muted">{{ food_bank.contact_person }}</small>
+                                    <br>
+                                    <small class="text-muted">
+                                        Need: {{ food_bank.daily_average_need_pounds }} lbs/day •
+                                        Capacity: {{ food_bank.storage_capacity_pounds }} lbs
+                                    </small>
+                                    {% if food_bank.can_self_pickup %}
+                                        <br>
+                                        <span class="badge bg-success">Can self-pickup</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center text-muted py-3">
+                        <p class="mb-2">No food banks registered</p>
+                        <a href="{% url 'foodbank:food_bank_registration' region.id %}" class="btn btn-sm btn-primary">
+                            Register First Food Bank
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Grocery Stores -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-store me-2"></i>
+                    Grocery Stores ({{ grocery_stores.count }})
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if grocery_stores %}
+                    {% for store in grocery_stores %}
+                        <div class="border-bottom pb-2 mb-2">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ store.name }}</h6>
+                                    <small class="text-muted">{{ store.contact_person }}</small>
+                                    <br>
+                                    <small class="text-muted">
+                                        Pickup: {{ store.preferred_pickup_time_start|time:"g:i A" }} -
+                                        {{ store.preferred_pickup_time_end|time:"g:i A" }}
+                                    </small>
+                                </div>
+                                <a href="{% url 'foodbank:food_donation_form' store.id %}" class="btn btn-xs btn-outline-success">
+                                    Donate
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center text-muted py-3">
+                        <p class="mb-2">No grocery stores registered</p>
+                        <a href="{% url 'foodbank:grocery_store_registration' region.id %}" class="btn btn-sm btn-success">
+                            Register First Store
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

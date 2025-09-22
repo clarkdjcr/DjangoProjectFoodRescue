@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+
+{% block title %}Food Donation - {{ grocery_store.name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <!-- Store Header -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-store fa-2x text-primary me-3"></i>
+                    <div>
+                        <h5 class="mb-1">{{ grocery_store.name }}</h5>
+                        <small class="text-muted">{{ grocery_store.address }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Donation Form -->
+        <div class="card{% if is_mobile %} mobile-optimized{% endif %}">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-plus-circle me-2"></i>
+                    Submit Food Donation
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" class="{% if is_mobile %}mobile-optimized{% endif %}">
+                    {% csrf_token %}
+
+                    <!-- Food Category -->
+                    <div class="mb-4">
+                        <label for="{{ form.category.id_for_label }}" class="form-label fw-bold">
+                            <i class="fas fa-list-alt me-2"></i>Food Category
+                        </label>
+                        {{ form.category }}
+                        {% if form.category.help_text %}
+                            <div class="form-text">{{ form.category.help_text }}</div>
+                        {% endif %}
+                        {% if form.category.errors %}
+                            <div class="text-danger">{{ form.category.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mb-4">
+                        <label for="{{ form.description.id_for_label }}" class="form-label fw-bold">
+                            <i class="fas fa-align-left me-2"></i>Description
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.help_text %}
+                            <div class="form-text">{{ form.description.help_text }}</div>
+                        {% endif %}
+                        {% if form.description.errors %}
+                            <div class="text-danger">{{ form.description.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Quantity -->
+                    <div class="mb-4">
+                        <label for="{{ form.quantity_pounds.id_for_label }}" class="form-label fw-bold">
+                            <i class="fas fa-weight me-2"></i>Quantity (pounds)
+                        </label>
+                        <div class="input-group">
+                            {{ form.quantity_pounds }}
+                            <span class="input-group-text">lbs</span>
+                        </div>
+                        {% if form.quantity_pounds.help_text %}
+                            <div class="form-text">{{ form.quantity_pounds.help_text }}</div>
+                        {% endif %}
+                        {% if form.quantity_pounds.errors %}
+                            <div class="text-danger">{{ form.quantity_pounds.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Expiration Date -->
+                    <div class="mb-4">
+                        <label for="{{ form.expiration_date.id_for_label }}" class="form-label fw-bold">
+                            <i class="fas fa-calendar-alt me-2"></i>Expiration Date
+                            <small class="text-muted">(if applicable)</small>
+                        </label>
+                        {{ form.expiration_date }}
+                        {% if form.expiration_date.help_text %}
+                            <div class="form-text">{{ form.expiration_date.help_text }}</div>
+                        {% endif %}
+                        {% if form.expiration_date.errors %}
+                            <div class="text-danger">{{ form.expiration_date.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Sell By Date (if not mobile) -->
+                    {% if not is_mobile and form.sell_by_date %}
+                        <div class="mb-4">
+                            <label for="{{ form.sell_by_date.id_for_label }}" class="form-label fw-bold">
+                                <i class="fas fa-calendar-check me-2"></i>Sell By Date
+                                <small class="text-muted">(if applicable)</small>
+                            </label>
+                            {{ form.sell_by_date }}
+                            {% if form.sell_by_date.help_text %}
+                                <div class="form-text">{{ form.sell_by_date.help_text }}</div>
+                            {% endif %}
+                            {% if form.sell_by_date.errors %}
+                                <div class="text-danger">{{ form.sell_by_date.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    <!-- Submit Button -->
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-paper-plane me-2"></i>
+                            Submit Donation
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Contact Info -->
+                <div class="alert alert-info mt-4">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-info-circle me-2"></i>
+                        What happens next?
+                    </h6>
+                    <p class="mb-2">After submitting your donation:</p>
+                    <ul class="mb-0">
+                        <li>Our AI system will process your request</li>
+                        <li>You'll receive an email with proposed pickup times</li>
+                        <li>Confirm the pickup time that works best for you</li>
+                        <li>Our volunteer team will arrive during the confirmed window</li>
+                    </ul>
+                </div>
+
+                <!-- Preferred Contact -->
+                <div class="bg-light rounded p-3 mt-3">
+                    <h6 class="text-primary">
+                        <i class="fas fa-phone me-2"></i>
+                        Need immediate assistance?
+                    </h6>
+                    <p class="mb-1">Contact: {{ grocery_store.contact_person }}</p>
+                    <p class="mb-1">Phone: {{ grocery_store.phone }}</p>
+                    <p class="mb-0">Email: {{ grocery_store.email }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Donations -->
+        {% if recent_donations %}
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-history me-2"></i>
+                        Recent Donations
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for donation in recent_donations %}
+                            <div class="col-md-6">
+                                <div class="card border-left-success">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h6 class="mb-1">{{ donation.category.name }}</h6>
+                                            <span class="status-badge status-{{ donation.status }}">
+                                                {{ donation.get_status_display }}
+                                            </span>
+                                        </div>
+                                        <p class="text-muted small mb-2">{{ donation.description|truncatechars:60 }}</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">{{ donation.quantity_pounds }} lbs</small>
+                                            <small class="text-muted">{{ donation.created_at|date:"M d" }}</small>
+                                        </div>
+                                        {% if donation.id %}
+                                            <a href="{% url 'foodbank:donation_tracking' donation.id %}" class="btn btn-sm btn-outline-primary mt-2">
+                                                <i class="fas fa-search me-1"></i>Track
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if is_mobile %}
+    <div class="fixed-bottom bg-white border-top p-3 d-md-none">
+        <div class="d-grid">
+            <a href="#donation-form" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus me-2"></i>Add Another Donation
+            </a>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-focus first field on desktop
+    if (!isMobileDevice()) {
+        const firstField = document.querySelector('select, input, textarea');
+        if (firstField) {
+            firstField.focus();
+        }
+    }
+
+    // Form validation
+    const form = document.querySelector('form');
+    const quantityField = document.getElementById('{{ form.quantity_pounds.id_for_label }}');
+    const descriptionField = document.getElementById('{{ form.description.id_for_label }}');
+
+    if (quantityField) {
+        quantityField.addEventListener('input', function() {
+            const value = parseFloat(this.value);
+            if (value <= 0) {
+                this.setCustomValidity('Quantity must be greater than 0');
+            } else if (value > 10000) {
+                this.setCustomValidity('Please contact us directly for donations over 10,000 lbs');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+    }
+
+    // Character counter for description
+    if (descriptionField) {
+        const maxLength = 500;
+        const counter = document.createElement('div');
+        counter.className = 'form-text text-end';
+        descriptionField.parentNode.appendChild(counter);
+
+        function updateCounter() {
+            const remaining = maxLength - descriptionField.value.length;
+            counter.textContent = `${remaining} characters remaining`;
+            counter.className = remaining < 50 ? 'form-text text-warning text-end' : 'form-text text-muted text-end';
+        }
+
+        descriptionField.addEventListener('input', updateCounter);
+        updateCounter();
+    }
+});
+</script>
+{% endblock %}
