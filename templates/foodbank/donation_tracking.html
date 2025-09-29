@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+
+{% block title %}Track Donation - Food Rescue Hub{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-truck"></i> Track Your Food Donation
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Donation Details -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Donation Information</h5>
+                            <p><strong>ID:</strong> #{{ donation.id }}</p>
+                            <p><strong>Store:</strong> {{ donation.grocery_store.name }}</p>
+                            <p><strong>Description:</strong> {{ donation.description }}</p>
+                            <p><strong>Quantity:</strong> {{ donation.quantity_pounds }} lbs</p>
+                            <p><strong>Category:</strong> {{ donation.category.name|title }}</p>
+                            <p><strong>Submitted:</strong> {{ donation.created_at|date:"M d, Y g:i A" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Status & Timing</h5>
+                            <p><strong>Status:</strong>
+                                <span class="badge
+                                    {% if donation.status == 'pending' %}badge-warning
+                                    {% elif donation.status == 'confirmed' %}badge-info
+                                    {% elif donation.status == 'picked_up' %}badge-success
+                                    {% elif donation.status == 'delivered' %}badge-success
+                                    {% else %}badge-secondary{% endif %}">
+                                    {{ donation.status|title }}
+                                </span>
+                            </p>
+                            {% if donation.expiration_date %}
+                                <p><strong>Expires:</strong> {{ donation.expiration_date|date:"M d, Y" }}</p>
+                            {% endif %}
+                            {% if donation.sell_by_date %}
+                                <p><strong>Sell By:</strong> {{ donation.sell_by_date|date:"M d, Y" }}</p>
+                            {% endif %}
+                            {% if donation.processed_from_email %}
+                                <p><small class="text-muted">
+                                    <i class="fas fa-envelope"></i> Processed from email
+                                </small></p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Route Information -->
+                    {% if route_stop and route %}
+                        <div class="border-top pt-3">
+                            <h5>Pickup & Delivery Schedule</h5>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Route Information</h6>
+                                    <p><strong>Route ID:</strong> #{{ route.id }}</p>
+                                    <p><strong>Scheduled Date:</strong> {{ route.scheduled_date|date:"M d, Y" }}</p>
+                                    <p><strong>Start Time:</strong> {{ route.start_time|time:"g:i A" }}</p>
+                                    <p><strong>Driver Team:</strong> {{ route.driver_team|default:"TBD" }}</p>
+                                    <p><strong>Truck:</strong> {{ route.truck_identifier|default:"TBD" }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Stop Details</h6>
+                                    <p><strong>Stop #:</strong> {{ route_stop.stop_order }}</p>
+                                    <p><strong>Estimated Time:</strong> {{ route_stop.estimated_arrival_time|time:"g:i A" }}</p>
+                                    <p><strong>Confirmed:</strong>
+                                        {% if route_stop.is_confirmed %}
+                                            <span class="text-success"><i class="fas fa-check"></i> Yes</span>
+                                            {% if route_stop.confirmed_at %}
+                                                <br><small class="text-muted">{{ route_stop.confirmed_at|date:"M d, g:i A" }}</small>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-warning"><i class="fas fa-clock"></i> Pending</span>
+                                        {% endif %}
+                                    </p>
+                                    {% if route_stop.notes %}
+                                        <p><strong>Notes:</strong> {{ route_stop.notes }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Route Status -->
+                            <div class="mt-3">
+                                <h6>Route Status</h6>
+                                <div class="progress mb-2">
+                                    {% if route.status == 'planned' %}
+                                        <div class="progress-bar bg-info" style="width: 25%;">Planned</div>
+                                    {% elif route.status == 'in_progress' %}
+                                        <div class="progress-bar bg-warning" style="width: 50%;">In Progress</div>
+                                    {% elif route.status == 'completed' %}
+                                        <div class="progress-bar bg-success" style="width: 100%;">Completed</div>
+                                    {% else %}
+                                        <div class="progress-bar bg-secondary" style="width: 10%;">{{ route.status|title }}</div>
+                                    {% endif %}
+                                </div>
+                                <small class="text-muted">Current status: {{ route.status|title }}</small>
+                            </div>
+                        </div>
+                    {% else %}
+                        <!-- No Route Assigned Yet -->
+                        <div class="border-top pt-3">
+                            <div class="alert alert-info">
+                                <h5><i class="fas fa-info-circle"></i> Pickup Scheduling</h5>
+                                <p>Your donation is in the queue for pickup scheduling. Our team will:</p>
+                                <ol>
+                                    <li>Review and confirm your donation details</li>
+                                    <li>Optimize pickup routes in your area</li>
+                                    <li>Send you pickup time confirmation</li>
+                                    <li>Coordinate delivery to local food banks</li>
+                                </ol>
+                                <p class="mb-0">
+                                    <strong>Expected processing time:</strong> 24-48 hours<br>
+                                    <strong>Questions?</strong> Contact {{ donation.grocery_store.phone }}
+                                </p>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- Impact Information -->
+                    <div class="border-top pt-3">
+                        <h5>Community Impact</h5>
+                        <div class="row text-center">
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h3 class="text-success">{{ donation.quantity_pounds }}</h3>
+                                        <small>Pounds of food rescued</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h3 class="text-primary">{% widthratio donation.quantity_pounds 1 2.4 %}</h3>
+                                        <small>Estimated meals provided</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h3 class="text-warning">{% widthratio donation.quantity_pounds 1 4.1 %}</h3>
+                                        <small>CO2 emissions saved (lbs)</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="border-top pt-3 text-center">
+                        <a href="{% url 'foodbank:food_donation_form' donation.grocery_store.id %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Submit Another Donation
+                        </a>
+                        <a href="{% url 'foodbank:home' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-home"></i> Back to Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Auto-refresh for active tracking -->
+{% if route and route.status == 'in_progress' %}
+<script>
+// Auto-refresh every 5 minutes if route is in progress
+setTimeout(function() {
+    location.reload();
+}, 300000);
+</script>
+{% endif %}
+{% endblock %}
