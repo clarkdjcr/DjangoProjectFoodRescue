@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Email Processing - {{ region.name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h2 class="mb-1">
+                    <i class="fas fa-envelope me-2"></i>
+                    Email Processing - {{ region.name }}
+                </h2>
+                <p class="mb-0 opacity-75">Process email donations and manage food recovery</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Email Processing Form -->
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-mail-forward me-2"></i>
+                    Process Email Donation
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="{{ form.email_content.id_for_label }}" class="form-label">Email Content</label>
+                        {{ form.email_content }}
+                        {% if form.email_content.errors %}
+                            <div class="text-danger">{{ form.email_content.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.donor_email.id_for_label }}" class="form-label">Donor Email</label>
+                        {{ form.donor_email }}
+                        {% if form.donor_email.errors %}
+                            <div class="text-danger">{{ form.donor_email.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-cogs me-1"></i>
+                        Process Email
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Email Donations -->
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-history me-2"></i>
+                    Recent Email Donations
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if recent_email_donations %}
+                    {% for donation in recent_email_donations %}
+                        <div class="mb-3 pb-3 border-bottom">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>{{ donation.business_name }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ donation.food_type }}</small>
+                                    <br>
+                                    <small class="text-muted">{{ donation.created_at|date:"M d, Y g:i A" }}</small>
+                                </div>
+                                <span class="badge bg-success">{{ donation.estimated_pounds }} lbs</span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted mb-0">No recent email donations found.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <a href="{% url 'foodbank:region_dashboard' region.id %}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-1"></i>
+            Back to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

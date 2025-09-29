@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+
+{% block title %}Analytics Dashboard - {{ region.name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h2 class="mb-1">
+                    <i class="fas fa-chart-line me-2"></i>
+                    Analytics Dashboard - {{ region.name }}
+                </h2>
+                <p class="mb-0 opacity-75">Monitor performance and track food recovery metrics</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Date Range Filter -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="get" class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label">Start Date</label>
+                        <input type="date" name="start_date" class="form-control" value="{{ start_date|date:'Y-m-d' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">End Date</label>
+                        <input type="date" name="end_date" class="form-control" value="{{ end_date|date:'Y-m-d' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter me-1"></i>
+                            Apply Filter
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Metrics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center border-0 shadow-sm">
+            <div class="card-body">
+                <div class="text-primary mb-2">
+                    <i class="fas fa-hands-helping fa-2x"></i>
+                </div>
+                <h3 class="mb-1">{{ total_donations_count }}</h3>
+                <p class="text-muted mb-0">Total Donations</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-0 shadow-sm">
+            <div class="card-body">
+                <div class="text-success mb-2">
+                    <i class="fas fa-weight fa-2x"></i>
+                </div>
+                <h3 class="mb-1">{{ total_weight|floatformat:0 }}</h3>
+                <p class="text-muted mb-0">Pounds Recovered</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-0 shadow-sm">
+            <div class="card-body">
+                <div class="text-warning mb-2">
+                    <i class="fas fa-route fa-2x"></i>
+                </div>
+                <h3 class="mb-1">{{ completed_routes }}</h3>
+                <p class="text-muted mb-0">Routes Completed</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-0 shadow-sm">
+            <div class="card-body">
+                <div class="text-info mb-2">
+                    <i class="fas fa-balance-scale fa-2x"></i>
+                </div>
+                <h3 class="mb-1">{{ avg_donation_size|floatformat:1 }}</h3>
+                <p class="text-muted mb-0">Avg Donation (lbs)</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Food Category Breakdown -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    Food Category Breakdown
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if category_breakdown %}
+                    <canvas id="categoryChart" width="400" height="200"></canvas>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-chart-pie fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No data available for the selected period</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    Category Details
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if category_breakdown %}
+                    {% for category, data in category_breakdown.items %}
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <strong>{{ category|title }}</strong>
+                                <br>
+                                <small class="text-muted">{{ data.count }} donations</small>
+                            </div>
+                            <span class="badge bg-primary">{{ data.weight|floatformat:0 }} lbs</span>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted mb-0">No category data available</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h6 class="card-title">Quick Actions</h6>
+                <div class="btn-group" role="group">
+                    <a href="{% url 'foodbank:region_dashboard' region.id %}" class="btn btn-outline-primary">
+                        <i class="fas fa-tachometer-alt me-1"></i>
+                        Dashboard
+                    </a>
+                    <a href="{% url 'foodbank:route_planning' region.id %}" class="btn btn-outline-success">
+                        <i class="fas fa-route me-1"></i>
+                        Route Planning
+                    </a>
+                    <a href="{% url 'foodbank:email_processing' region.id %}" class="btn btn-outline-info">
+                        <i class="fas fa-envelope me-1"></i>
+                        Email Processing
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+{% if category_breakdown %}
+const ctx = document.getElementById('categoryChart').getContext('2d');
+const categoryChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+        labels: [
+            {% for category in category_breakdown.keys %}
+                '{{ category|title }}',
+            {% endfor %}
+        ],
+        datasets: [{
+            data: [
+                {% for data in category_breakdown.values %}
+                    {{ data.weight }},
+                {% endfor %}
+            ],
+            backgroundColor: [
+                '#FF6384',
+                '#36A2EB',
+                '#FFCE56',
+                '#4BC0C0',
+                '#9966FF',
+                '#FF9F40'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+            }
+        }
+    }
+});
+{% endif %}
+</script>
+{% endblock %}

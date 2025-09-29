@@ -1,0 +1,266 @@
+{% extends 'base.html' %}
+
+{% block title %}Route Planning - {{ region.name }}{% endblock %}
+
+{% block content %}
+<!-- Region Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h2 class="mb-1">
+                            <i class="fas fa-route me-2"></i>
+                            Route Planning - {{ region.name }}
+                        </h2>
+                        <p class="mb-0 opacity-75">
+                            Plan and optimize delivery routes for food distribution
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        <a href="{% url 'foodbank:region_dashboard' region.id %}" class="btn btn-light btn-sm">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Urgent Donations Alert -->
+{% if urgent_donations %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-warning">
+            <h5><i class="fas fa-exclamation-triangle me-2"></i>Urgent Donations Requiring Pickup</h5>
+            <p class="mb-0">{{ urgent_donations.count }} donation(s) with expiration dates within 2 days or sell-by dates within 1 day.</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Route Planning Tools -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Create New Route</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Plan a new delivery route for this region.</p>
+                <a href="{% url 'foodbank:create_route' region.id %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>Create Route
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Route Analytics</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">View route performance and optimization metrics.</p>
+                <a href="{% url 'foodbank:analytics_dashboard' region.id %}" class="btn btn-secondary">
+                    <i class="fas fa-chart-bar me-1"></i>View Analytics
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pending Donations -->
+<div class="row mb-4">
+    <!-- Urgent Donations -->
+    <div class="col-md-6">
+        <div class="card border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="fas fa-clock me-2"></i>Urgent Donations ({{ urgent_donations.count }})
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if urgent_donations %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Store</th>
+                                    <th>Items</th>
+                                    <th>Expiry</th>
+                                    <th>Weight</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for donation in urgent_donations %}
+                                <tr>
+                                    <td>{{ donation.grocery_store.name }}</td>
+                                    <td>{{ donation.item_count }}</td>
+                                    <td>
+                                        {% if donation.expiration_date %}
+                                            <small class="text-danger">{{ donation.expiration_date }}</small>
+                                        {% elif donation.sell_by_date %}
+                                            <small class="text-warning">{{ donation.sell_by_date }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ donation.estimated_weight_pounds|floatformat:1 }} lbs</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">No urgent donations requiring immediate pickup.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Regular Donations -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-boxes me-2"></i>Regular Donations ({{ regular_donations.count }})
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if regular_donations %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Store</th>
+                                    <th>Items</th>
+                                    <th>Expiry</th>
+                                    <th>Weight</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for donation in regular_donations|slice:":10" %}
+                                <tr>
+                                    <td>{{ donation.grocery_store.name }}</td>
+                                    <td>{{ donation.item_count }}</td>
+                                    <td>
+                                        {% if donation.expiration_date %}
+                                            <small>{{ donation.expiration_date }}</small>
+                                        {% elif donation.sell_by_date %}
+                                            <small>{{ donation.sell_by_date }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ donation.estimated_weight_pounds|floatformat:1 }} lbs</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if regular_donations.count > 10 %}
+                        <small class="text-muted">Showing 10 of {{ regular_donations.count }} donations</small>
+                    {% endif %}
+                {% else %}
+                    <p class="text-muted mb-0">No regular donations pending pickup.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upcoming Routes -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar-alt me-2"></i>Upcoming Routes ({{ upcoming_routes.count }})
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if upcoming_routes %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Start Time</th>
+                                    <th>Driver Team</th>
+                                    <th>Vehicle</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for route in upcoming_routes %}
+                                <tr>
+                                    <td>{{ route.scheduled_date }}</td>
+                                    <td>{{ route.start_time }}</td>
+                                    <td>{{ route.driver_team }}</td>
+                                    <td>{{ route.vehicle }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if route.status == 'scheduled' %}primary{% elif route.status == 'in_progress' %}warning{% elif route.status == 'completed' %}success{% else %}secondary{% endif %}">
+                                            {{ route.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="#" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="#" class="btn btn-outline-secondary btn-sm">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No upcoming routes scheduled for this region.</p>
+                    <a href="{% url 'foodbank:create_route' region.id %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Schedule First Route
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-primary">{{ food_banks.count }}</h4>
+                <p class="mb-0 text-muted">Active Food Banks</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-success">{{ grocery_stores.count }}</h4>
+                <p class="mb-0 text-muted">Partner Stores</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-warning">{{ urgent_donations.count }}</h4>
+                <p class="mb-0 text-muted">Urgent Pickups</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-info">{{ regular_donations.count }}</h4>
+                <p class="mb-0 text-muted">Regular Pickups</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
